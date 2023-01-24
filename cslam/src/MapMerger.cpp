@@ -532,6 +532,15 @@ MapMerger::mapptr MapMerger::MergeMaps(mapptr pMapCurr, mapptr pMapMatch, vector
     cout << "\033[1;32;41m!!! MAPS MERGED !!!\033[0m" << endl;
     this->SetIdle();
 
+    // log
+    std::stringstream map_logs_file;
+    map_logs_file << params::stats::msOutputDir << "/MapLogs.txt";
+    std::ofstream file_out;
+    file_out.open(map_logs_file.str(), std::ios_base::app);
+    file_out << fixed;
+    file_out << "Merge of map " << pMapCurr->mMapId << " and " << pMapMatch->mMapId << " into " << pFusedMap->mMapId << " at KF of ts " << setprecision(6) << pKFCur->mTimeStamp << endl;
+    file_out.close();
+
     //delete old maps and set new ones in threads
 
     pMapCurr->SetOutdated();

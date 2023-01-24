@@ -101,6 +101,7 @@ public:
     kfptr GetCurrentRefKFfromTracking();
     int GetNumKFsinLoopFinder();
     int GetNumKFsinMapMatcher();
+    size_t GetClientId(){return mClientId;}
 
     //---forwarding---
     void ClearCovGraph(size_t MapId);
@@ -117,6 +118,8 @@ public:
 //    #ifdef LOGGING
 //    void SetLogger(boost::shared_ptr<estd::mylog> pLogger);
 //    #endif
+
+    void SaveResult(const string &path_name);
 
 private:
     #ifdef LOGGING

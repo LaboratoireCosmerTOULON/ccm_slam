@@ -108,6 +108,9 @@ public:
     eTrackingState mState;
     eTrackingState mLastProcessedState;
 
+    std::map<double,eTrackingState> mPastStates;
+    void SaveStates(const string &filename);
+
     // Current Frame
     frameptr mCurrentFrame;
     cv::Mat mImGray;

@@ -31,6 +31,12 @@ Tracking::Tracking(ccptr pCC, vocptr pVoc, viewptr pFrameViewer, mapptr pMap, db
     : mState(NO_IMAGES_YET),mpCC(pCC),mpORBVocabulary(pVoc), mpKeyFrameDB(pKFDB), mpInitializer(nullptr),
       mpViewer(pFrameViewer), mpMap(pMap), mLastRelocFrameId(make_pair(0,0)), mClientId(ClientId)
 {
+    std::ofstream ofs;
+    std::stringstream states_file;
+    states_file << params::stats::msOutputDir << "/TrackingStatusAgent_" << mClientId << ".txt";
+    ofs.open(states_file.str(), std::ofstream::out | std::ofstream::trunc);
+    ofs.close();
+
     cv::FileStorage fSettings(strCamPath, cv::FileStorage::READ);
     float fx = fSettings["Camera.fx"];
     float fy = fSettings["Camera.fy"];
@@ -119,6 +125,17 @@ cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp)
     }
 
     Track();
+    mPastStates[timestamp] = mState;
+    std::stringstream states_file;
+    states_file << params::stats::msOutputDir << "/TrackingStatusAgent_" << mClientId << ".txt";
+    std::ofstream file_out;
+    file_out.open(states_file.str(), std::ios_base::app);
+    file_out << fixed;
+    file_out << timestamp << " " << mState << endl;
+    file_out.close();
+    // SaveStates("/home/ju/Thirdparty/ccmslam_ws/src/ccm_slam/cslam/output/");
+    // std::cout << mPastStates[timestamp] << std::endl;
+    // std::cout << mPastStates.size() << std::endl;;
 
     return mCurrentFrame->mTcw.clone();
 }
@@ -993,6 +1010,23 @@ Tracking::kfptr Tracking::GetReferenceKF()
         cout << "\033[1;33m!!! WARN !!!\033[0m " << __func__ << ":" << __LINE__ << " Tracking assumed to be locked " << endl;
 
     return mpReferenceKF;
+}
+
+void Tracking::SaveStates(const string &filename) 
+{
+    // cout << endl << "Saving tracking status to " << filename << " ..." << endl;
+    // ofstream f;
+    // f.open(filename.c_str());
+    // f << fixed;
+    std::cout << mPastStates.size() << std::endl;
+    // for(map<double,eTrackingState>::iterator mit=mPastStates.begin(), mend=mPastStates.end(); mit!=mend; mit++)
+    // {
+    //     f << setprecision(6) << mit->first << " " << mit->second << endl;
+    // }
+
+    // f.close();
+    // cout << endl << "tracking status saved!" << endl;
+    
 }
 
 } //end ns

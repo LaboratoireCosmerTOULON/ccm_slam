@@ -51,5 +51,8 @@ int main(int argc, char **argv) {
 
     ros::waitForShutdown();
 
+    cout << "test !!!!!!" << endl;
+    pSSys->SaveResult();
+
     return 0;
 }

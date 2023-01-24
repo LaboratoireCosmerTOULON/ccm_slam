@@ -1799,4 +1799,38 @@ void Map::CheckStructure()
 }
 #endif
 
+void Map::SaveKeyFrameTrajectory(const std::string& filename)
+{
+    if(mmpKeyFrames.empty()) //would overwrite files from other maps with empty files
+        return;
+
+    // Write out the keyframe data
+    std::ofstream keyframesFile;
+    keyframesFile.open(filename);
+    keyframesFile << fixed;
+
+    for (std::map<idpair,kfptr>::const_iterator itr = mmpKeyFrames.begin(); itr != mmpKeyFrames.end(); ++itr) 
+    {
+        kfptr pKF = itr->second;
+        idpair currID = itr->first;
+        const cv::Mat T_wc = pKF->GetPoseInverse();
+        const Eigen::Matrix4d eT_wc = Converter::toMatrix4d(T_wc);
+        ccptr pCC = *(mspCC.begin());
+        Eigen::Matrix4d T_SC;
+        if(mSysState == SERVER)
+            T_SC = pKF->mT_SC;
+        else
+            T_SC = pCC->mT_SC;
+
+        const Eigen::Matrix4d Tws = eT_wc * T_SC.inverse();
+        const Eigen::Quaterniond q(Tws.block<3,3>(0,0));
+
+        keyframesFile << setprecision(6) << pKF->mTimeStamp << setprecision(7) << " " << Tws(0,3) << " " << Tws(1,3) << " " << Tws(2,3) << " " << q.x() << " " << q.y() << " " << q.z() << " " << q.w() << " " << currID.second << " " << mMapId << endl;
+    }
+    keyframesFile.close();
+
+    std::cout << "KFs written to file" << std::endl;
+
+}
+
 } //end ns

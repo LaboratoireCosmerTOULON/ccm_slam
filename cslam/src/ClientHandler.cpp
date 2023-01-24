@@ -362,4 +362,26 @@ void ClientHandler::ClearCovGraph(size_t MapId)
 //}
 //#endif
 
+void ClientHandler::SaveResult(const string &path_name)
+{
+    std::cout << "--> Lock System" << std::endl;
+    while(!mpCC->LockMapping()){usleep(params::timings::miLockSleep);}
+    while(!mpCC->LockComm()){usleep(params::timings::miLockSleep);}
+    while(!mpCC->LockPlaceRec()){usleep(params::timings::miLockSleep);}
+    std::cout << "----> done" << std::endl;
+
+    std::stringstream KF_file;
+    KF_file << path_name << "/KeyFrameTrajectoryAgent_" << mClientId << ".txt";
+    mpMap->SaveKeyFrameTrajectory(KF_file.str());
+    std::stringstream states_file;
+    states_file << path_name << "/TrackingStatusAgent_" << mClientId << ".txt";
+    // mpTracking->SaveStates(states_file.str());
+
+    std::cout << "--> Unlock System" << std::endl;
+    mpCC->UnLockMapping();
+    mpCC->UnLockComm();
+    mpCC->UnLockPlaceRec();
+    std::cout << "----> done" << std::endl;
+}
+
 } //end ns

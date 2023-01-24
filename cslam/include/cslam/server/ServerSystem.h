@@ -71,6 +71,8 @@ public:
 
     bool CallbackSaveMap(ccmslam::ServiceSaveMap::Request &req, ccmslam::ServiceSaveMap::Response &res);
 
+    void SaveResult();
+
 private:
     void LoadVocabulary(const string &strVocFile);
     void InitializeMaps();

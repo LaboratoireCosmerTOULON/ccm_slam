@@ -52,5 +52,8 @@ int main(int argc, char **argv) {
         r.sleep();
     }
 
+    // cout << "test !!!!!!" << endl;
+    pCSys->SaveResult();
+
     return 0;
 }

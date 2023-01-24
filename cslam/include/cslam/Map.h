@@ -261,6 +261,8 @@ public:
     void WriteStateToCsv(const std::string& filename,
                          const size_t clientId);
 
+    void SaveKeyFrameTrajectory(const std::string& filename);
+
     //---Map Save/Load---
     void LoadMap(const string &path_name, vocptr voc, commptr comm, dbptr kfdb, uidptr uid);
     void SaveMap(const string &path_name);

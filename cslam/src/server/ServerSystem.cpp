@@ -35,6 +35,12 @@ ServerSystem::ServerSystem(ros::NodeHandle Nh, ros::NodeHandle NhPrivate, const 
 
     mServiceSavemap = mNh.advertiseService("ccmslam_savemap",&ServerSystem::CallbackSaveMap, this);
 
+    std::ofstream ofs;
+    std::stringstream map_logs_file;
+    map_logs_file << params::stats::msOutputDir << "/MapLogs.txt";
+    ofs.open(map_logs_file.str(), std::ofstream::out | std::ofstream::trunc);
+    ofs.close();
+
     if(mNumOfClients < 1)
     {
         ROS_ERROR_STREAM("In \" System::System(...)\": Num od clients < 1");
@@ -76,6 +82,28 @@ bool ServerSystem::CallbackSaveMap(ccmslam::ServiceSaveMap::Request &req, ccmsla
     if(map_id == 3) mpClient3->SaveMap(filepath.str());
     std::cout << "----> Done" << std::endl;
     return true;
+}
+
+void ServerSystem::SaveResult()
+{
+    cout << endl << "Saving results to " << params::stats::msOutputDir << " ..." << endl;
+    std::stringstream folderpath;
+    folderpath << params::stats::msOutputDir;
+    mpClient0->SaveResult(folderpath.str());
+    mpClient1->SaveResult(folderpath.str());
+    mpClient2->SaveResult(folderpath.str());
+    mpClient3->SaveResult(folderpath.str());
+    // std::cout << "----> saving map to: " << filepath.str() << std::endl;
+    // // if(!boost::filesystem::is_empty(filepath.str())) {
+    // //     std::cout << COUTERROR << "folder for map data is not empty!" << std::endl;
+    // //     return false;
+    // // }
+    // mpClient0->SaveMap(filepath.str());
+    // // mpClient1->SaveMap(filepath.str());
+    // // mpClient2->SaveMap(filepath.str());
+    // // mpClient3->SaveMap(filepath.str());
+    // std::cout << "----> Done" << std::endl;
+    cout << endl << "trajectory saved!" << endl;
 }
 
 void ServerSystem::InitializeClients()

@@ -84,4 +84,12 @@ void ClientSystem::LoadVocabulary(const string &strVocFile)
     cout << "Vocabulary loaded!" << endl << endl;
 }
 
+void ClientSystem::SaveResult()
+{
+    // // std::cout << mpAgent->GetClientId() << std::endl;
+    // std::stringstream states_file;
+    // states_file << << params::stats::msOutputDir << "/TrackingStatusAgent_" << std::to_string(mpAgent->GetClientId()) << ".txt";
+    // // mpAgent->GetTrackPtr()->SaveStates(path_name);
+}
+
 } //end namespace
