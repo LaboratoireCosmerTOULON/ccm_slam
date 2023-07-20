@@ -89,6 +89,10 @@ public:
     void RequestReset();
     void ChangeMap(mapptr pMap);
 
+    // Real-time analysis
+    double mdPRLC_ms;
+    double mdLC_ms;
+
 private:
     bool CheckKfQueue();
     bool DetectLoop();
@@ -140,6 +144,7 @@ private:
 
     // Fix scale in the stereo/RGB-D case
     bool mbFixScale;
+
 };
 
 } //end namespace

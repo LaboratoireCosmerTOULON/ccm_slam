@@ -98,6 +98,10 @@ public:
     void EraseKFs(vector<kfptr> vpKFs);
     int GetNumKFsinQueue();
 
+    // Real-time analysis
+    double mdPRMM_ms;
+    double mdMM_ms;
+
 private:
     bool CheckKfQueue();
     bool DetectLoop();

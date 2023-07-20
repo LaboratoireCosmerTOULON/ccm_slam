@@ -114,6 +114,9 @@ public:
         return mlNewKeyFrames.size();
     }
 
+    // Real-time analysis
+    double mdNewKFProcessing_ms;
+
 protected:
 
     bool CheckNewKeyFrames();

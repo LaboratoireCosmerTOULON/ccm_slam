@@ -51,6 +51,9 @@ void LocalMapping::RunClient()
         // Check if there are keyframes in the queue
         if(CheckNewKeyFrames())
         {
+            // Real-time analysis
+            std::chrono::steady_clock::time_point time_StartNewKFProcessing = std::chrono::steady_clock::now();
+
             // Get Communicator Mutex -> Comm cannot publish. Assure no publishing whilst changing data
             if(params::sys::mbStrictLock) while(!mpCC->LockMapping()){
                 usleep(params::timings::miLockSleep);
@@ -94,6 +97,17 @@ void LocalMapping::RunClient()
 
             if(params::sys::mbStrictLock)
                 mpCC->UnLockMapping();
+
+            // Real-time analysis
+            std::chrono::steady_clock::time_point time_EndNewKFProcessing = std::chrono::steady_clock::now();
+            mdNewKFProcessing_ms = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndNewKFProcessing - time_StartNewKFProcessing).count();
+            std::stringstream times_file;
+            times_file << params::stats::msOutputDir << "/TimesLM_" << mClientId << ".txt";
+            std::ofstream file_out;
+            file_out.open(times_file.str(), std::ios_base::app);
+            file_out << fixed;
+            file_out << mdNewKFProcessing_ms << endl;
+            file_out.close();
         }
         else if(Stop())
         {

@@ -142,6 +142,9 @@ cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp)
 
 void Tracking::Track()
 {
+    // Real-time analysis
+    std::chrono::steady_clock::time_point time_StartTracking = std::chrono::steady_clock::now();
+
     if(mState==NO_IMAGES_YET)
     {
         mState = NOT_INITIALIZED;
@@ -301,11 +304,24 @@ void Tracking::Track()
         mlbLost.push_back(mState==LOST);
     }
 
+    // Real-time analysis
+    std::chrono::steady_clock::time_point time_EndTracking = std::chrono::steady_clock::now();
+    mdTrack_ms = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndTracking - time_StartTracking).count();
+    std::stringstream times_file;
+    times_file << params::stats::msOutputDir << "/TimesT_" << mClientId << ".txt";
+    std::ofstream file_out;
+    file_out.open(times_file.str(), std::ios_base::app);
+    file_out << fixed;
+    file_out << mdTrack_ms << endl;
+    file_out.close();
+
     mpMap->UnLockMapUpdate();
 }
 
 void Tracking::MonocularInitialization()
 {
+    std::cout << "trying to initialize" << std::endl;
+    std::cout << "mCurrentFrame->mvKeys.size() : " << mCurrentFrame->mvKeys.size() << std::endl;
     if(!mpInitializer)
     {
         // Set Reference Frame
@@ -322,6 +338,7 @@ void Tracking::MonocularInitialization()
             mpInitializer.reset(new Initializer(*mCurrentFrame,1.0,200));
 
             fill(mvIniMatches.begin(),mvIniMatches.end(),-1);
+            std::cout << "not enough keys" << std::endl;
 
             return;
         }
@@ -333,6 +350,7 @@ void Tracking::MonocularInitialization()
         {
             mpInitializer = nullptr;
             fill(mvIniMatches.begin(),mvIniMatches.end(),-1);
+            std::cout << "not enough keys" << std::endl;
             return;
         }
 
@@ -345,6 +363,7 @@ void Tracking::MonocularInitialization()
         {
             //delete mpInitializer;
             mpInitializer = nullptr;
+            std::cout << "not enough matches" << std::endl;
             return;
         }
 
@@ -372,11 +391,13 @@ void Tracking::MonocularInitialization()
 
             CreateInitialMapMonocular();
         }
+        std::cout << "initialization failed" << std::endl;
     }
 }
 
 void Tracking::CreateInitialMapMonocular()
 {
+    std::cout << "initializing map" << std::endl;
     // Get Communicator Mutex -> Comm cannot publish. Assure no publishing whilst changing data
     while(!mpCC->LockTracking()){
         usleep(params::timings::miLockSleep);

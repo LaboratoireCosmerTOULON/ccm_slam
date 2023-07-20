@@ -365,23 +365,86 @@ void ClientHandler::ClearCovGraph(size_t MapId)
 void ClientHandler::SaveResult(const string &path_name)
 {
     std::cout << "--> Lock System" << std::endl;
+    // while(!mpCC->LockTracking()){usleep(params::timings::miLockSleep);}
     while(!mpCC->LockMapping()){usleep(params::timings::miLockSleep);}
     while(!mpCC->LockComm()){usleep(params::timings::miLockSleep);}
     while(!mpCC->LockPlaceRec()){usleep(params::timings::miLockSleep);}
     std::cout << "----> done" << std::endl;
 
     std::stringstream KF_file;
-    KF_file << path_name << "/KeyFrameTrajectoryAgent_" << mClientId << ".txt";
+    KF_file << path_name << "/KeyFrameTrajectory_" << mClientId << ".txt";
     mpMap->SaveKeyFrameTrajectory(KF_file.str());
     std::stringstream states_file;
-    states_file << path_name << "/TrackingStatusAgent_" << mClientId << ".txt";
+    states_file << path_name << "/TrackingStatus_" << mClientId << ".txt";
     // mpTracking->SaveStates(states_file.str());
+    // std::stringstream traj_file;
+    // traj_file << path_name << "/Trajectory_" << mClientId << ".txt";
+    // SaveTrajectory(traj_file.str());
 
     std::cout << "--> Unlock System" << std::endl;
+    // mpCC->UnLockTracking();
     mpCC->UnLockMapping();
     mpCC->UnLockComm();
     mpCC->UnLockPlaceRec();
     std::cout << "----> done" << std::endl;
+}
+
+void ClientHandler::SaveTrajectory(const string &path_name)
+{
+    ofstream f;
+    f.open(path_name.c_str());
+    f << fixed;
+
+    f << setprecision(6) << "ts" << setprecision(7) << " tx ty tz qx qy qz qw ref_KF_ts" << endl;
+
+    list<kfptr>::iterator lRit = mpTracking->mlpReferences.begin();
+    list<double>::iterator lT = mpTracking->mlFrameTimes.begin();
+    list<bool>::iterator lbL = mpTracking->mlbLost.begin();
+
+    for(auto lit=mpTracking->mlRelativeFramePoses.begin(),
+        lend=mpTracking->mlRelativeFramePoses.end();lit!=lend;lit++, lRit++, lT++, lbL++)
+    {
+        //cout << "1" << endl;
+        if(*lbL)
+            continue;
+
+
+        kfptr pKF = *lRit;
+        //cout << "KF: " << pKF->mnId << endl;
+
+        cv::Mat Trw;
+
+        // If the reference keyframe was culled, traverse the spanning tree to get a suitable keyframe.
+        if (!pKF)
+            continue;
+
+        //cout << "2.5" << endl;
+
+        while(pKF->isBad())
+        {
+            //cout << " 2.bad" << endl;
+            Trw = Trw * pKF->mTcp;
+            pKF = pKF->GetParent();
+            //cout << "--Parent KF: " << pKF->mnId << endl;
+        }
+
+
+        //cout << "3" << endl;
+
+        Trw = Trw * pKF->GetPose(); // Tcp*Tpw*Twb0=Tcb0 where b0 is the new world reference
+
+        // cout << "4" << endl;
+
+        const Eigen::Matrix4d eT_wc = Converter::toMatrix4d((*lit)*Trw).inverse();
+        const Eigen::Matrix4d Tws = eT_wc;
+        const Eigen::Quaterniond q(Tws.block<3,3>(0,0));
+        f << setprecision(6) << *lT << setprecision(7) << " " << Tws(0,3) << " " << Tws(1,3) << " " << Tws(2,3) << " " << q.x() << " " << q.y() << " " << q.z() << " " << q.w() << " " << pKF->mTimeStamp << endl;
+
+        // cout << "5" << endl;
+    }
+    //cout << "end saving trajectory" << endl;
+    f.close();
+    cout << endl << "End of saving trajectory to " << path_name << " ..." << endl;
 }
 
 } //end ns

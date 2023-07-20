@@ -81,15 +81,58 @@ void MapMatcher::Run()
 
         if(CheckKfQueue())
         {
+            // Real-time analysis
+            bool bIsLoopCorrected = false;
+            std::chrono::steady_clock::time_point time_StartPRMM = std::chrono::steady_clock::now();
+
             bool bDetect = DetectLoop();
             if(bDetect)
             {
                 bool bSim3 = ComputeSim3();
+
+                // Real-time analysis
+                std::chrono::steady_clock::time_point time_EndPRMM = std::chrono::steady_clock::now();
+                mdPRMM_ms = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndPRMM - time_StartPRMM).count();
+
                 if(bSim3)
                 {
+                    // Real-time analysis
+                    std::chrono::steady_clock::time_point time_StartMM = std::chrono::steady_clock::now();
+
                     // Perform loop fusion and pose graph optimization
                     CorrectLoop();
+
+                    // Real-time analysis
+                    std::chrono::steady_clock::time_point time_EndMM = std::chrono::steady_clock::now();
+                    mdMM_ms = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndMM - time_StartMM).count();
+                    bIsLoopCorrected = true;
                 }
+            }
+            else
+            {
+                // Real-time analysis
+                std::chrono::steady_clock::time_point time_EndPRMM = std::chrono::steady_clock::now();
+                mdPRMM_ms = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndPRMM - time_StartPRMM).count();
+
+            }
+
+            // Real-time analysis
+            std::stringstream times_file;
+            times_file << params::stats::msOutputDir << "/TimesPRMM.txt";
+            std::ofstream file_out;
+            file_out.open(times_file.str(), std::ios_base::app);
+            file_out << fixed;
+            file_out << mdPRMM_ms << endl;
+            file_out.close();
+
+            if (bIsLoopCorrected)
+            {
+                std::stringstream times_file2;
+                times_file2 << params::stats::msOutputDir << "/TimesMM.txt";
+                file_out.open(times_file2.str(), std::ios_base::app);
+                file_out << fixed;
+                file_out << mdMM_ms << endl;
+                file_out.close();
             }
         }
 

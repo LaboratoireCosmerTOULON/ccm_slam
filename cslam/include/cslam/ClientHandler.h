@@ -120,6 +120,7 @@ public:
 //    #endif
 
     void SaveResult(const string &path_name);
+    void SaveTrajectory(const string &path_name);
 
 private:
     #ifdef LOGGING
